@@ -35,7 +35,8 @@ h1 {
 }
 
 #localVideo-container {
-  height: 250px;
+  /* height: 250px; */
+  width: 400px;
   position: absolute;
   bottom: 5px;
   right: 5px;

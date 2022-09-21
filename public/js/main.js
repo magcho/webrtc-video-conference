@@ -20,21 +20,6 @@ const pcConfig = {
         "stun:stun4.l.google.com:19302",
       ],
     },
-    {
-      urls: "turn:numb.viagenie.ca",
-      credential: "muazkh",
-      username: "webrtc@live.com",
-    },
-    {
-      urls: "turn:numb.viagenie.ca",
-      credential: "muazkh",
-      username: "webrtc@live.com",
-    },
-    {
-      urls: "turn:192.158.29.39:3478?transport=udp",
-      credential: "JZEOEt2V3Qb0y27GRntt2u2PAYA=",
-      username: "28224511:1379330808",
-    },
   ],
 };
 
@@ -86,6 +71,32 @@ webrtc.addEventListener("leftRoom", (e) => {
   document.querySelector("h1").textContent = "";
   notify(`Left the room ${room}`);
 });
+
+/**
+ * Mute audio
+ */
+const muteBtn = document.getElementById("muteBtn")
+muteBtn.addEventListener('click',(e)=>{
+  const element = e.target
+  
+  const audioStatus = {
+    'mute': false,
+    'mic_on': true
+  }
+  const currentStatus = webrtc._localStream.getAudioTracks()[0].enabled
+
+  if(currentStatus === audioStatus['mic_on']){
+    webrtc._localStream.getAudioTracks()[0].enabled = audioStatus['mute']
+
+    element.textContent = 'mic_on'
+  }else if(currentStatus === audioStatus['mute']){
+    webrtc._localStream.getAudioTracks()[0].enabled = audioStatus['mic_on']
+
+    element.textContent = 'mute'
+  }
+})
+
+
 
 /**
  * Get local media

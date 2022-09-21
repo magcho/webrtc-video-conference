@@ -104,6 +104,12 @@ class Webrtc extends EventTarget {
     this.socket.emit("leave room", this.room);
   }
 
+  muteAudio(){
+    if(this._localStream){
+      this._localStream.getTracks()[0].enabled = false
+    }
+  }
+
   // Get local stream
   getLocalStream(audioConstraints, videoConstraints) {
     return navigator.mediaDevices
