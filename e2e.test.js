@@ -22,6 +22,11 @@ describe("webRTCのテスト", () => {
   afterEach(async () => {
     await eachPageRunner(pages, async ({ page }) => {
       await page.screenshot({ path: `./shots/${Math.random()}.png` });
+      await screenshotElement(
+        page,
+        "#videos video",
+        `./shots/${Math.random()}.png`
+      );
     });
     await eachPageRunner(pages, async ({ page }) => {
       await page.click("#leaveBtn");
@@ -44,7 +49,14 @@ async function eachPageRunner(pages, runner) {
   }
 }
 
-async function joinRoom(page, browser, roomId) {
-  await page.type("#roomId", 1);
-  await page.click("#joinBtn");
+/**
+ * see: https://qiita.com/tamanugi/items/8cc1266265457f13b9ea
+ */
+async function screenshotElement(page, selector, filename) {
+  const clip = await page.evaluate((s) => {
+    const el = document.querySelector(s);
+    const { width, height, top: y, left: x } = el.getBoundingClientRect();
+    return { width, height, x, y };
+  }, selector);
+  await page.screenshot({ clip, path: filename });
 }
