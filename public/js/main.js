@@ -75,7 +75,7 @@ webrtc.addEventListener("leftRoom", (e) => {
 /**
  * Mute audio
  */
-const muteBtn = document.getElementById("muteBtn")
+const muteBtn = document.getElementById("muteAudioBtn")
 muteBtn.addEventListener('click',(e)=>{
   const element = e.target
   
@@ -95,6 +95,30 @@ muteBtn.addEventListener('click',(e)=>{
     element.textContent = 'mute'
   }
 })
+
+/**
+ * hide camera
+ */
+ const hideCameraBtn = document.getElementById("hideCameraBtn")
+ hideCameraBtn.addEventListener('click',(e)=>{
+   const element = e.target
+   
+   const cameraStatus = {
+     'hide_camera': false,
+     'active_camera': true
+   }
+   const currentStatus = webrtc._localStream.getVideoTracks()[0].enabled
+ 
+   if(currentStatus === cameraStatus['active_camera']){
+     webrtc._localStream.getVideoTracks()[0].enabled = cameraStatus['hide_camera']
+ 
+     element.textContent = 'active_camera'
+   }else if(currentStatus === cameraStatus['hide_camera']){
+     webrtc._localStream.getVideoTracks()[0].enabled = cameraStatus['active_camera']
+ 
+     element.textContent = 'hide_camera'
+   }
+ })
 
 
 
