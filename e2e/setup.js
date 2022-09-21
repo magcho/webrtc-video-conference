@@ -6,8 +6,25 @@ const puppeteer = require("puppeteer");
 const DIR = path.join(os.tmpdir(), "jest_puppeteer_global_setup");
 
 module.exports = async function () {
-  const browser1 = await puppeteer.launch();
-  const browser2 = await puppeteer.launch();
+  const commonBrowserOptions = [
+    "--window-size=1280,720",
+    "--use-fake-device-for-media-stream",
+    "--use-fake-ui-for-media-stream",
+  ];
+  const browser1 = await puppeteer.launch({
+    headless: false,
+    args: [
+      ...commonBrowserOptions,
+      "--use-file-for-fake-video-capture=./e2e/fixtures/mock1.y4m",
+    ],
+  });
+  const browser2 = await puppeteer.launch({
+    headless: false,
+    args: [
+      ...commonBrowserOptions,
+      "--use-file-for-fake-video-capture=./e2e/fixtures/mock2.y4m",
+    ],
+  });
   // store the browser instance so we can teardown it later
   // this global is only available in the teardown but not in TestEnvironments
   globalThis.__BROWSER_GLOBAL1__ = browser1;
