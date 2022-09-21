@@ -11,9 +11,13 @@ describe("webRTCのテスト", () => {
   const browser1 = globalThis.__BROWSER_GLOBAL1__;
   const browser2 = globalThis.__BROWSER_GLOBAL2__;
   const pages = [browser1.newPage(), browser2.newPage()];
+  let page1, page2;
 
-  beforeEach(() =>
-    eachPageRunner(pages, async ({ page }) => {
+  beforeEach(async () => {
+    page1 = await pages[0];
+    page2 = await pages[1];
+
+    await eachPageRunner(pages, async ({ page }) => {
       await page.goto("http://localhost:8080");
 
       await setTimeout(1000);
@@ -22,8 +26,8 @@ describe("webRTCのテスト", () => {
       await page.click("#joinBtn");
 
       await setTimeout(2000);
-    })
-  );
+    });
+  });
 
   afterEach(async () => {
     await eachPageRunner(pages, async ({ page }) => {
@@ -36,17 +40,13 @@ describe("webRTCのテスト", () => {
   });
 
   test("１は２の映像を見ることができる", async () => {
-    const user2VideoImage = await screenshotElement(
-      await pages[0],
-      "#videos video"
-    );
+    const user2VideoImage = await screenshotElement(page1, "#videos video");
     const qrContents = await readQrCode(user2VideoImage);
 
     expect(qrContents).toBe("https://lp.chatwork.com/product-day/2022/");
   });
 
   test("２がカメラを消したとき１は２の映像を見ることができない", async () => {
-    const page2 = await pages[1];
     page2.click("#hideCameraBtn");
     await setTimeout(500);
 
