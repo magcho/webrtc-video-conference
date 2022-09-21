@@ -1,6 +1,12 @@
+const express = require("express");
+const { Protocol } = require("puppeteer");
 const { setTimeout } = require("timers/promises");
+const { readQrCode } = require("./e2e/qrcode");
+
+const user2QrContents = "";
 
 jest.setTimeout(999999);
+
 describe("webRTCのテスト", () => {
   const browser1 = globalThis.__BROWSER_GLOBAL1__;
   const browser2 = globalThis.__BROWSER_GLOBAL2__;
@@ -22,19 +28,35 @@ describe("webRTCのテスト", () => {
   afterEach(async () => {
     await eachPageRunner(pages, async ({ page }) => {
       await page.screenshot({ path: `./shots/${Math.random()}.png` });
-      await screenshotElement(
-        page,
-        "#videos video",
-        `./shots/${Math.random()}.png`
-      );
     });
+
     await eachPageRunner(pages, async ({ page }) => {
       await page.click("#leaveBtn");
     });
   });
 
-  test("sample", () => {
-    expect(1 + 1).toBe(2);
+  test("１は２の映像を見ることができる", async () => {
+    const user2VideoImage = await screenshotElement(
+      await pages[0],
+      "#videos video"
+    );
+    const qrContents = await readQrCode(user2VideoImage);
+
+    expect(qrContents).toBe("https://lp.chatwork.com/product-day/2022/");
+  });
+
+  test("２がカメラを消したとき１は２の映像を見ることができない", async () => {
+    const page2 = await pages[1];
+    page2.click("#hideCameraBtn");
+    await setTimeout(500);
+
+    const user2VideoImage = await screenshotElement(
+      await pages[0],
+      "#videos video"
+    );
+    await expect(readQrCode(user2VideoImage)).rejects.toBe(
+      "Couldn't find enough finder patterns:0 patterns found"
+    );
   });
 
   // test("初期状態で音声・映像は有効化されている", async () => {
@@ -52,11 +74,11 @@ async function eachPageRunner(pages, runner) {
 /**
  * see: https://qiita.com/tamanugi/items/8cc1266265457f13b9ea
  */
-async function screenshotElement(page, selector, filename) {
+async function screenshotElement(page, selector) {
   const clip = await page.evaluate((s) => {
     const el = document.querySelector(s);
     const { width, height, top: y, left: x } = el.getBoundingClientRect();
     return { width, height, x, y };
   }, selector);
-  await page.screenshot({ clip, path: filename });
+  return await page.screenshot({ clip });
 }
