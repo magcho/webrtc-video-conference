@@ -1,9 +1,5 @@
-const express = require("express");
-const { Protocol } = require("puppeteer");
 const { setTimeout } = require("timers/promises");
 const { readQrCode } = require("./e2e/qrcode");
-
-const user2QrContents = "";
 
 jest.setTimeout(999999);
 
@@ -57,6 +53,34 @@ describe("webRTCのテスト", () => {
     await expect(readQrCode(user2VideoImage)).rejects.toBe(
       "Couldn't find enough finder patterns:0 patterns found"
     );
+  });
+
+  test("２の音声が１に届いている", async () => {
+    await setTimeout(1000);
+
+    let audioLevel = [];
+    for (var i = 0; i < 10; i++) {
+      audioLevel.push(await page1.$eval("#volume", (e) => e.value));
+      await setTimeout(100);
+    }
+
+    expect(audioLevel.some((level) => level > 0)).toBe(true);
+  });
+
+  test.only("２がミュートすると２の音声が１に届かなくなる", async () => {
+    await setTimeout(1000);
+
+    await page2.click("#muteAudioBtn");
+
+    await setTimeout(1000);
+
+    let audioLevel = [];
+    for (var i = 0; i < 10; i++) {
+      audioLevel.push(await page1.$eval("#volume", (e) => e.value));
+      await setTimeout(100);
+    }
+
+    expect(audioLevel.some((level) => level > 0)).toBe(true);
   });
 
   // test("初期状態で音声・映像は有効化されている", async () => {

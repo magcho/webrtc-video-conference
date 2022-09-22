@@ -23,6 +23,8 @@ const pcConfig = {
   ],
 };
 
+const audioLevelQueue = Array(10).fill(0);
+
 /**
  * Initialize webrtc
  */
@@ -75,52 +77,52 @@ webrtc.addEventListener("leftRoom", (e) => {
 /**
  * Mute audio
  */
-const muteBtn = document.getElementById("muteAudioBtn")
-muteBtn.addEventListener('click',(e)=>{
-  const element = e.target
-  
+const muteBtn = document.getElementById("muteAudioBtn");
+muteBtn.addEventListener("click", (e) => {
+  const element = e.target;
+
   const audioStatus = {
-    'mute': false,
-    'mic_on': true
+    mute: false,
+    mic_on: true,
+  };
+  const currentStatus = webrtc._localStream.getAudioTracks()[0].enabled;
+
+  if (currentStatus === audioStatus["mic_on"]) {
+    webrtc._localStream.getAudioTracks()[0].enabled = audioStatus["mute"];
+
+    element.textContent = "mic_on";
+  } else if (currentStatus === audioStatus["mute"]) {
+    webrtc._localStream.getAudioTracks()[0].enabled = audioStatus["mic_on"];
+
+    element.textContent = "mute";
   }
-  const currentStatus = webrtc._localStream.getAudioTracks()[0].enabled
-
-  if(currentStatus === audioStatus['mic_on']){
-    webrtc._localStream.getAudioTracks()[0].enabled = audioStatus['mute']
-
-    element.textContent = 'mic_on'
-  }else if(currentStatus === audioStatus['mute']){
-    webrtc._localStream.getAudioTracks()[0].enabled = audioStatus['mic_on']
-
-    element.textContent = 'mute'
-  }
-})
+});
 
 /**
  * hide camera
  */
- const hideCameraBtn = document.getElementById("hideCameraBtn")
- hideCameraBtn.addEventListener('click',(e)=>{
-   const element = e.target
-   
-   const cameraStatus = {
-     'hide_camera': false,
-     'active_camera': true
-   }
-   const currentStatus = webrtc._localStream.getVideoTracks()[0].enabled
- 
-   if(currentStatus === cameraStatus['active_camera']){
-     webrtc._localStream.getVideoTracks()[0].enabled = cameraStatus['hide_camera']
- 
-     element.textContent = 'active_camera'
-   }else if(currentStatus === cameraStatus['hide_camera']){
-     webrtc._localStream.getVideoTracks()[0].enabled = cameraStatus['active_camera']
- 
-     element.textContent = 'hide_camera'
-   }
- })
+const hideCameraBtn = document.getElementById("hideCameraBtn");
+hideCameraBtn.addEventListener("click", (e) => {
+  const element = e.target;
 
+  const cameraStatus = {
+    hide_camera: false,
+    active_camera: true,
+  };
+  const currentStatus = webrtc._localStream.getVideoTracks()[0].enabled;
 
+  if (currentStatus === cameraStatus["active_camera"]) {
+    webrtc._localStream.getVideoTracks()[0].enabled =
+      cameraStatus["hide_camera"];
+
+    element.textContent = "active_camera";
+  } else if (currentStatus === cameraStatus["hide_camera"]) {
+    webrtc._localStream.getVideoTracks()[0].enabled =
+      cameraStatus["active_camera"];
+
+    element.textContent = "hide_camera";
+  }
+});
 
 /**
  * Get local media
@@ -174,6 +176,38 @@ webrtc.addEventListener("newUser", (e) => {
     videoContainer.append(kickBtn);
   }
   videoGrid.append(videoContainer);
+
+  // audio level
+  const audioCtx = new AudioContext();
+  const analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 32;
+  const sourceNode = audioCtx.createMediaStreamSource(stream);
+
+  sourceNode.connect(analyser);
+
+  let dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  const getLevel = () => {
+    analyser.getByteTimeDomainData(dataArray);
+    return Array.from(dataArray).reduce(
+      (a, b) => Math.abs(127 - a) + Math.abs(127 - b)
+    );
+  };
+
+  const audioLevelElem = document.getElementById("volume");
+  const refresh = () => {
+    const level = getLevel();
+
+    audioLevelQueue.shift();
+    audioLevelQueue.push(level);
+
+    const maxLevel = Math.max(...audioLevelQueue);
+
+    audioLevelElem.setAttribute("value", maxLevel);
+    requestAnimationFrame(refresh);
+  };
+
+  requestAnimationFrame(refresh);
 });
 
 /**

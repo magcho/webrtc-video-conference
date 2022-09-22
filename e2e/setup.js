@@ -10,12 +10,14 @@ module.exports = async function () {
     "--window-size=1280,720",
     "--use-fake-device-for-media-stream",
     "--use-fake-ui-for-media-stream",
+    "--no-sandbox",
   ];
   const browser1 = await puppeteer.launch({
     headless: false,
     args: [
       ...commonBrowserOptions,
       "--use-file-for-fake-video-capture=./e2e/fixtures/mock1.y4m",
+      "--use-file-for-fake-audio-capture=./e2e/fixtures/mock1.wav",
     ],
   });
   const browser2 = await puppeteer.launch({
@@ -23,6 +25,7 @@ module.exports = async function () {
     args: [
       ...commonBrowserOptions,
       "--use-file-for-fake-video-capture=./e2e/fixtures/mock2.y4m",
+      "--use-file-for-fake-audio-capture=./e2e/fixtures/mock2.wav",
     ],
   });
   // store the browser instance so we can teardown it later
