@@ -22,21 +22,34 @@ describe("webRTCのテスト", () => {
       await page.click("#joinBtn");
 
       await setTimeout(2000);
+      await page.click("#joinBtn");
     });
   });
 
   afterEach(async () => {
     await eachPageRunner(pages, async ({ page }) => {
-      await page.screenshot({ path: `./shots/${Math.random()}.png` });
+      await page.click("#leaveBtn");
     });
+  });
 
+  afterAll(async () => {
     await eachPageRunner(pages, async ({ page }) => {
+      await page.goto("http://localhost:8080");
+      await setTimeout(1000);
+
+      await page.type("#roomId", "2");
+      await page.click("#joinBtn");
+
+      await setTimeout(500);
+
       await page.click("#leaveBtn");
     });
   });
 
   test("１は２の映像を見ることができる", async () => {
-    const user2VideoImage = await screenshotElement(page1, "#videos video");
+    await setTimeout(2000);
+
+    const user2VideoImage = await screenshotElement(page1, "#otherVideo");
     const qrContents = await readQrCode(user2VideoImage);
 
     expect(qrContents).toBe("https://lp.chatwork.com/product-day/2022/");
@@ -67,7 +80,7 @@ describe("webRTCのテスト", () => {
     expect(audioLevel.some((level) => level > 0)).toBe(true);
   });
 
-  test.only("２がミュートすると２の音声が１に届かなくなる", async () => {
+  test("２がミュートすると２の音声が１に届かなくなる", async () => {
     await setTimeout(1000);
 
     await page2.click("#muteAudioBtn");
